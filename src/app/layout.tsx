@@ -2,7 +2,7 @@ import type React from "react";
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from "@/components/theme-provider"; // Assuming this component exists
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,11 +18,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`${inter.className} bg-black antialiased`}>
+        {" "}
+        {/* Added antialiased & bg-black for base */}
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
-          enableSystem={false}
+          enableSystem={false} // Explicitly disable system if you only want dark
         >
           {children}
         </ThemeProvider>

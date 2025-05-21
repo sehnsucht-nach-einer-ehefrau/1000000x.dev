@@ -1,249 +1,291 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import QueryInput from "@/components/query-input";
 import KnowledgeMap from "@/components/knowledge-map";
 import { generateAIResponse, extractPrerequisites } from "@/lib/ai-service";
-import type { Node, Connection } from "@/types/graph";
-import { motion } from "framer-motion";
+import type { Node, Connection, KnowledgeMapRef } from "@/types/graph";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronRight } from "lucide-react";
+import {
+  NODE_HEIGHT,
+  NODE_WIDTH,
+  CHILD_NODE_X_OFFSET,
+  CHILD_NODE_Y_INCREMENT,
+} from "@/config/graphConfig";
 
 export default function Home() {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingGlobal, setIsLoadingGlobal] = useState(false);
   const [loadingNodeId, setLoadingNodeId] = useState<string | null>(null);
   const [centralNodeId, setCentralNodeId] = useState<string | null>(null);
   const [activeParentId, setActiveParentId] = useState<string | null>(null);
-  const [isFirstLoad, setIsFirstLoad] = useState(true);
-  const mapRef = useRef<any>(null);
-
-  useEffect(() => {
-    // Set first load to false after a delay
-    const timer = setTimeout(() => {
-      setIsFirstLoad(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
+  const mapRef = useRef<KnowledgeMapRef>(null);
 
   const handleQuery = async (query: string) => {
-    setIsLoading(true);
+    setIsLoadingGlobal(true);
+    setNodes([]);
+    setConnections([]);
+    setCentralNodeId(null);
+    setActiveParentId(null);
 
     try {
-      // Reset the graph
-      setNodes([]);
-      setConnections([]);
-
-      // Generate initial response
       const response = await generateAIResponse(query);
-
-      // Create the central node
+      const newCentralNodeId = `node-query-${Date.now()}`;
       const centralNode: Node = {
-        id: `node-${Date.now()}`,
+        id: newCentralNodeId,
         title: query,
         content: response,
         depth: 0,
-        position: { x: 100, y: 100 }, // Position for central node
+        position: { x: 0, y: 0 },
         hasExplored: false,
       };
 
       setNodes([centralNode]);
-      setCentralNodeId(centralNode.id);
-      setActiveParentId(centralNode.id);
+      setCentralNodeId(newCentralNodeId);
+      setActiveParentId(newCentralNodeId);
     } catch (error) {
       console.error("Error processing query:", error);
+      alert(
+        `Failed to process query: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     } finally {
-      setIsLoading(false);
+      setIsLoadingGlobal(false);
     }
   };
 
-  const handleExplore = async (nodeId: string) => {
-    if (isLoading) return;
+  const handleExplorePrerequisites = useCallback(
+    async (nodeId: string) => {
+      const parentNode = nodes.find((n) => n.id === nodeId);
+      if (!parentNode || isLoadingGlobal || loadingNodeId === nodeId) return;
 
-    const nodeIndex = nodes.findIndex((n) => n.id === nodeId);
-    if (
-      nodeIndex === -1 ||
-      !nodes[nodeIndex].content ||
-      nodes[nodeIndex].hasExplored
-    )
-      return;
-
-    setLoadingNodeId(nodeId);
-    setActiveParentId(nodeId);
-
-    try {
-      const node = nodes[nodeIndex];
-
-      // Extract prerequisites
-      const prerequisites = await extractPrerequisites(
-        node.content,
-        node.title
-      );
-
-      // Create new nodes and connections
-      const newNodes = [...nodes];
-      const newConnections = [...connections];
-
-      // Mark the node as explored
-      newNodes[nodeIndex] = {
-        ...newNodes[nodeIndex],
-        hasExplored: true,
-      };
-
-      // Position prerequisites in a vertical column to the right
-      const startY = Math.max(
-        50,
-        node.position.y - (prerequisites.length * 300) / 2
-      );
-      const spacing = 300; // Vertical spacing between nodes
-
-      for (let i = 0; i < prerequisites.length; i++) {
-        const prerequisite = prerequisites[i];
-        const newNodeId = `node-${Date.now()}-${i}`;
-
-        // Position to the right of the parent node in a vertical column
-        const x = node.position.x + 400; // Fixed X position to the right
-        const y = startY + i * spacing; // Stacked vertically
-
-        const newNode: Node = {
-          id: newNodeId,
-          title: prerequisite,
-          content: "",
-          depth: node.depth + 1,
-          position: { x, y },
-          hasExplored: false,
-          parentId: node.id,
-        };
-
-        newNodes.push(newNode);
-        newConnections.push({
-          id: `conn-${Date.now()}-${i}`,
-          source: node.id,
-          target: newNodeId,
-        });
+      if (parentNode.hasExplored && parentNode.id === activeParentId) {
+        mapRef.current?.panToNode(nodeId);
+        return;
       }
 
-      setNodes(newNodes);
-      setConnections(newConnections);
-    } catch (error) {
-      console.error("Error exploring prerequisites:", error);
-    } finally {
-      setLoadingNodeId(null);
-    }
-  };
+      setIsLoadingGlobal(true);
+      setLoadingNodeId(nodeId);
+      setActiveParentId(nodeId);
 
-  const handleNodeSelect = (nodeId: string) => {
-    // Set the selected node as the active parent
+      try {
+        let nodeContent = parentNode.content;
+        if (!nodeContent) {
+          nodeContent = await generateAIResponse(parentNode.title);
+          setNodes((prev) =>
+            prev.map((n) =>
+              n.id === nodeId
+                ? { ...n, content: nodeContent!, hasExplored: false }
+                : n
+            )
+          );
+        }
+
+        const prerequisites = await extractPrerequisites(
+          nodeContent!,
+          parentNode.title
+        );
+
+        // Use a function form of setNodes to get the latest nodes state for positioning
+        setNodes((prevNodes) => {
+          const currentParentNodeFromState = prevNodes.find(
+            (n) => n.id === nodeId
+          )!; // Parent must exist
+          const newChildNodes: Node[] = [];
+          const newConnectionsToAdd: Connection[] = [];
+
+          const totalBlockHeight =
+            prerequisites.length * CHILD_NODE_Y_INCREMENT -
+            (CHILD_NODE_Y_INCREMENT - NODE_HEIGHT);
+          const startY =
+            currentParentNodeFromState.position.y +
+            NODE_HEIGHT / 2 -
+            totalBlockHeight / 2;
+
+          prerequisites.forEach((prerequisiteTitle, i) => {
+            const existingChildByTitleForThisParent = prevNodes.find(
+              (n) => n.parentId === nodeId && n.title === prerequisiteTitle
+            );
+
+            if (existingChildByTitleForThisParent) {
+              const connectionExists = connections.some(
+                (c) =>
+                  c.source === nodeId &&
+                  c.target === existingChildByTitleForThisParent.id
+              );
+              if (!connectionExists) {
+                newConnectionsToAdd.push({
+                  id: `conn-${nodeId}-${existingChildByTitleForThisParent.id}`,
+                  source: nodeId,
+                  target: existingChildByTitleForThisParent.id,
+                });
+              }
+              return;
+            }
+
+            const newNodeId = `node-${nodeId}-child-${i}-${Date.now()}`;
+
+            newChildNodes.push({
+              id: newNodeId,
+              title: prerequisiteTitle,
+              content: "",
+              depth: currentParentNodeFromState.depth + 1,
+              position: {
+                x: currentParentNodeFromState.position.x + CHILD_NODE_X_OFFSET,
+                y: startY + i * CHILD_NODE_Y_INCREMENT,
+              },
+              hasExplored: false,
+              parentId: nodeId,
+            });
+            newConnectionsToAdd.push({
+              id: `conn-${nodeId}-${newNodeId}`,
+              source: nodeId,
+              target: newNodeId,
+            });
+          });
+
+          // Update connections based on the new connections to add
+          if (newConnectionsToAdd.length > 0) {
+            setConnections((prevConns) => {
+              const currentConnectionIds = new Set(prevConns.map((c) => c.id));
+              const trulyNewConnections = newConnectionsToAdd.filter(
+                (nc) => !currentConnectionIds.has(nc.id)
+              );
+              return [...prevConns, ...trulyNewConnections];
+            });
+          }
+
+          const updatedParentInArray = {
+            ...currentParentNodeFromState,
+            hasExplored: true,
+            content: nodeContent!,
+          };
+          const otherNodesInArray = prevNodes.filter((n) => n.id !== nodeId);
+          return [...otherNodesInArray, updatedParentInArray, ...newChildNodes];
+        });
+
+        requestAnimationFrame(() => mapRef.current?.panToNode(nodeId));
+      } catch (error) {
+        console.error(`Error exploring prerequisites for ${nodeId}:`, error);
+        alert(
+          `Failed to explore prerequisites: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`
+        );
+        setNodes((prev) =>
+          prev.map((n) => (n.id === nodeId ? { ...n, hasExplored: false } : n))
+        );
+      } finally {
+        setIsLoadingGlobal(false);
+        setLoadingNodeId(null);
+      }
+    },
+    [nodes, connections, isLoadingGlobal, loadingNodeId, activeParentId]
+  ); // Added connections dependency
+
+  const handleNodeContentNeeded = useCallback(
+    async (nodeId: string) => {
+      const node = nodes.find((n) => n.id === nodeId);
+      if (!node || node.content || loadingNodeId === nodeId || isLoadingGlobal)
+        return;
+
+      setLoadingNodeId(nodeId);
+      try {
+        const response = await generateAIResponse(node.title);
+        setNodes((prev) =>
+          prev.map((n) => (n.id === nodeId ? { ...n, content: response } : n))
+        );
+      } catch (error) {
+        console.error(`Error loading content for ${nodeId}:`, error);
+        alert(
+          `Failed to load content: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`
+        );
+      } finally {
+        setLoadingNodeId(null);
+      }
+    },
+    [nodes, loadingNodeId, isLoadingGlobal]
+  );
+
+  const handleNodeSelect = useCallback((nodeId: string) => {
     setActiveParentId(nodeId);
-  };
+    requestAnimationFrame(() => mapRef.current?.panToNode(nodeId));
+  }, []);
 
-  const handleNodeMove = (
-    nodeId: string,
-    newPosition: { x: number; y: number }
-  ) => {
-    setNodes((prevNodes) =>
-      prevNodes.map((node) =>
-        node.id === nodeId ? { ...node, position: newPosition } : node
-      )
-    );
-  };
+  const handleNodeMove = useCallback(
+    (nodeId: string, newPosition: { x: number; y: number }) => {
+      setNodes((prevNodes) =>
+        prevNodes.map((node) =>
+          node.id === nodeId ? { ...node, position: newPosition } : node
+        )
+      );
+    },
+    []
+  );
 
-  const loadNodeContent = async (nodeId: string) => {
-    if (isLoading || loadingNodeId) return;
-
-    const nodeIndex = nodes.findIndex((n) => n.id === nodeId);
-    if (nodeIndex === -1 || nodes[nodeIndex].content) return;
-
-    setLoadingNodeId(nodeId);
-
-    try {
-      // Generate content for this prerequisite
-      const response = await generateAIResponse(nodes[nodeIndex].title);
-
-      // Update the node with content
-      const updatedNodes = [...nodes];
-      updatedNodes[nodeIndex] = {
-        ...updatedNodes[nodeIndex],
-        content: response,
-      };
-
-      setNodes(updatedNodes);
-    } catch (error) {
-      console.error("Error loading node content:", error);
-    } finally {
-      setLoadingNodeId(null);
+  const breadcrumbPath = useMemo(() => {
+    if (!activeParentId || !centralNodeId || nodes.length === 0) return [];
+    const path: Node[] = [];
+    let currentNode = nodes.find((n) => n.id === activeParentId);
+    while (currentNode) {
+      path.unshift(currentNode);
+      if (currentNode.id === centralNodeId) break;
+      if (!currentNode.parentId) break;
+      currentNode = nodes.find((n) => n.id === currentNode!.parentId);
+      if (path.length > 15) break;
     }
-  };
-
-  // Get all parent nodes for the breadcrumb navigation
-  const getParentNodes = () => {
-    if (!activeParentId || !centralNodeId) return [];
-
-    const result = [];
-    let currentId = activeParentId;
-
-    // Start with the active parent
-    const activeNode = nodes.find((n) => n.id === currentId);
-    if (activeNode) result.unshift(activeNode);
-
-    // Traverse up the parent chain until we reach the central node
-    while (currentId && currentId !== centralNodeId) {
-      const node = nodes.find((n) => n.id === currentId);
-      if (!node || !node.parentId) break;
-
-      currentId = node.parentId;
-      const parentNode = nodes.find((n) => n.id === currentId);
-      if (parentNode) result.unshift(parentNode);
-    }
-
-    // Add the central node at the beginning if it's not already there
-    if (result.length === 0 || result[0].id !== centralNodeId) {
-      const centralNode = nodes.find((n) => n.id === centralNodeId);
-      if (centralNode) result.unshift(centralNode);
-    }
-
-    return result;
-  };
-
-  const parentNodes = getParentNodes();
+    return path;
+  }, [nodes, activeParentId, centralNodeId]);
 
   return (
-    <main className="flex flex-col h-screen bg-black text-white overflow-hidden">
-      <motion.div
-        className="p-4 border-b border-gray-800/50 bg-gray-950/80 backdrop-blur-sm"
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-      >
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
+    <main className="flex flex-col h-screen bg-black text-white overflow-hidden antialiased pt-4">
+      <motion.header /* ... same ... */>
+        <div className="flex items-center justify-between max-w-full mx-auto px-2 sm:px-4">
           <div className="flex items-center">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center mr-3">
-              <span className="text-white font-bold">R</span>
+            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center mr-3 shadow-md">
+              <span className="text-white font-bold text-lg">10x</span>
             </div>
-            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
-              Rabbit Hole Explorer
+            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
+              The 10x Developer
             </h1>
           </div>
 
-          {/* Breadcrumb navigation */}
-          {nodes.length > 0 && (
-            <div className="flex items-center space-x-2 text-sm text-gray-400 overflow-x-auto max-w-md">
-              {parentNodes.map((node, index) => (
-                <div key={node.id} className="flex items-center">
-                  {index > 0 && <span className="mx-2 text-gray-600">/</span>}
+          {nodes.length > 0 && breadcrumbPath.length > 0 && (
+            <nav
+              className="flex items-center text-sm text-gray-400 overflow-x-auto max-w-sm md:max-w-md lg:max-w-xl scrollbar-thin scrollbar-thumb-gray-700/80 scrollbar-track-transparent py-1"
+              aria-label="Breadcrumb"
+            >
+              {breadcrumbPath.map((node, index) => (
+                <div
+                  key={node.id}
+                  className="flex items-center whitespace-nowrap"
+                >
+                  {index > 0 && (
+                    <ChevronRight className="h-4 w-4 mx-1 text-gray-600 shrink-0" />
+                  )}
                   <button
-                    onClick={() => setActiveParentId(node.id)}
-                    className={`hover:text-white transition-colors whitespace-nowrap ${
-                      node.id === activeParentId ? "text-white font-medium" : ""
-                    }`}
+                    onClick={() => handleNodeSelect(node.id)}
+                    title={node.title}
+                    className={`px-2 py-1 rounded-md hover:text-white hover:bg-gray-700/60 transition-colors truncate max-w-[150px] sm:max-w-[200px]
+                      ${
+                        node.id === activeParentId
+                          ? "text-white font-semibold bg-gray-700/70 ring-1 ring-purple-500/50"
+                          : ""
+                      }`}
                   >
                     {node.title}
                   </button>
                 </div>
               ))}
-            </div>
+            </nav>
           )}
         </div>
-      </motion.div>
+      </motion.header>
 
       <div className="flex-1 relative overflow-hidden">
         {nodes.length > 0 ? (
@@ -251,52 +293,45 @@ export default function Home() {
             ref={mapRef}
             nodes={nodes}
             connections={connections}
-            onNodeClick={loadNodeContent}
-            onExploreClick={handleExplore}
+            onNodeContentNeeded={handleNodeContentNeeded}
+            onExploreClick={handleExplorePrerequisites}
             onNodeMove={handleNodeMove}
             onNodeSelect={handleNodeSelect}
-            isLoading={isLoading}
+            isLoadingGlobal={isLoadingGlobal}
             loadingNodeId={loadingNodeId}
             centralNodeId={centralNodeId}
             activeParentId={activeParentId}
           />
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            {isFirstLoad ? (
+          <AnimatePresence>
+            {!isLoadingGlobal && (
               <motion.div
-                className="text-center"
-                initial={{ opacity: 0, y: 20 }}
+                className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center"
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
+                exit={{ opacity: 0, y: -30 }}
+                transition={{ duration: 0.6, ease: "circOut" }}
               >
-                <div className="h-16 w-16 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 mx-auto mb-6 flex items-center justify-center">
-                  <span className="text-white text-2xl font-bold">R</span>
+                <div className="h-20 w-20 mb-8 rounded-full bg-gradient-to-br from-blue-600 via-purple-500 to-pink-500 flex items-center justify-center shadow-2xl ring-4 ring-purple-500/30">
+                  <span className="text-white font-bold text-4xl">10x</span>
                 </div>
-                <h2 className="text-2xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
-                  Rabbit Hole Explorer
+                <h2 className="text-3xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
+                  Welcome to the 10x Developer
                 </h2>
-                <p className="text-gray-400 max-w-md">
-                  Enter a topic below to start exploring its prerequisites and
-                  dive down the rabbit hole of knowledge.
-                </p>
-              </motion.div>
-            ) : (
-              <motion.div
-                className="text-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                <p className="text-gray-500">
-                  Enter a topic to begin your exploration
+                <p className="text-gray-400 max-w-lg text-lg leading-relaxed">
+                  What do you want to know more about?
                 </p>
               </motion.div>
             )}
-          </div>
+          </AnimatePresence>
         )}
       </div>
 
-      <div className="p-6 border-t border-gray-800/50 bg-gray-950/80 backdrop-blur-sm">
-        <QueryInput onSubmit={handleQuery} isLoading={isLoading} />
+      <div className="p-4 sm:p-6 border-t border-gray-800/60 bg-gray-950/85 backdrop-blur-md z-10">
+        <QueryInput
+          onSubmit={handleQuery}
+          isLoading={isLoadingGlobal && nodes.length === 0}
+        />
       </div>
     </main>
   );

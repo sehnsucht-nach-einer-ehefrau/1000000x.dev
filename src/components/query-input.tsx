@@ -20,6 +20,7 @@ export default function QueryInput({ onSubmit, isLoading }: QueryInputProps) {
     e.preventDefault();
     if (query.trim() && !isLoading) {
       onSubmit(query.trim());
+      // Optional: setQuery(""); // Clear input after submission
     }
   };
 
@@ -28,36 +29,41 @@ export default function QueryInput({ onSubmit, isLoading }: QueryInputProps) {
       className="w-full max-w-2xl mx-auto"
       initial={{ y: 20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ delay: 0.2 }}
+      transition={{ delay: 0.2, type: "spring", stiffness: 100 }}
     >
       <form onSubmit={handleSubmit} className="relative">
         <div
-          className={`relative flex items-center transition-all duration-300 ${
-            isFocused ? "ring-2 ring-blue-500/50" : ""
-          }`}
+          className={`relative flex items-center transition-all duration-300 rounded-full
+            ${
+              isFocused
+                ? "ring-2 ring-blue-500/70 shadow-lg shadow-blue-500/30"
+                : "ring-1 ring-gray-700/50"
+            }`}
         >
-          <div className="absolute left-3 flex items-center justify-center h-10 w-10 rounded-full bg-gray-800/80">
+          <div className="absolute left-0 top-0 bottom-0 flex items-center pl-4 pointer-events-none">
             <Search className="h-5 w-5 text-gray-400" />
           </div>
           <Input
             type="text"
-            placeholder="Enter a topic to explore the rabbit hole..."
+            placeholder="Enter a topic to explore..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            className="pl-16 pr-32 py-6 bg-gray-900/80 backdrop-blur-sm border-gray-800 text-white rounded-full shadow-lg"
+            className="w-full pl-12 pr-36 py-6 bg-gray-900/80 backdrop-blur-sm border-transparent focus:border-transparent focus:ring-0 text-white rounded-full text-base"
             disabled={isLoading}
+            aria-label="Topic input"
           />
-          <div className="absolute right-2">
+          <div className="absolute right-2 top-1/2 -translate-y-1/2">
             <Button
               type="submit"
-              disabled={isLoading}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-4 shadow-lg shadow-blue-700/20"
+              disabled={isLoading || !query.trim()}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-5 py-2.5 shadow-md hover:shadow-lg transition-shadow"
+              aria-label="Explore topic"
             >
               {isLoading ? (
                 <div className="flex items-center">
-                  <div className="h-4 w-4 rounded-full border-2 border-t-transparent border-white animate-spin mr-2"></div>
+                  <div className="h-4 w-4 rounded-full border-2 border-t-transparent border-white animate-spin mr-2.5"></div>
                   <span>Exploring...</span>
                 </div>
               ) : (

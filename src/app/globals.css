@@ -199,3 +199,64 @@ body {
     }
   }
 }
+/* Custom scrollbar for breadcrumbs, etc. */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(107, 114, 128, 0.5); /* gray-500 with opacity */
+  border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.7); /* gray-400 with opacity */
+}
+
+/* Ensure prose styles within node cards are scoped if needed */
+.node-card-content .prose {
+  font-size: 0.875rem; /* Equivalent to prose-sm */
+  color: theme("colors.gray.300");
+}
+.node-card-content .prose h1,
+.node-card-content .prose h2,
+.node-card-content .prose h3,
+.node-card-content .prose h4,
+.node-card-content .prose h5,
+.node-card-content .prose h6 {
+  color: theme("colors.white");
+  margin-top: 1.2em;
+  margin-bottom: 0.6em;
+}
+.node-card-content .prose a {
+  color: theme("colors.blue.400");
+  text-decoration: none;
+}
+.node-card-content .prose a:hover {
+  text-decoration: underline;
+}
+.node-card-content .prose strong {
+  color: theme("colors.gray.100");
+}
+.node-card-content .prose code {
+  background-color: theme("colors.gray.800");
+  padding: 0.2em 0.4em;
+  border-radius: theme("borderRadius.md");
+  font-size: 0.85em;
+}
+.node-card-content .prose pre {
+  background-color: theme("colors.gray.800");
+  padding: theme("spacing.4");
+  border-radius: theme("borderRadius.lg");
+  overflow-x: auto;
+}
+.node-card-content .prose ul,
+.node-card-content .prose ol {
+  padding-left: 1.5em;
+}
+.node-card-content .prose li > p {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
+}
