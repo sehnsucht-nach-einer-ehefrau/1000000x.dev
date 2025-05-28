@@ -1,27 +1,25 @@
-import Groq from "groq-sdk";
-import { generateText } from "ai";
+// lib/ai-service.ts
 
 export async function generateAIResponse(query: string): Promise<string> {
   try {
-    const groq = new Groq({
-      apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY,
-      dangerouslyAllowBrowser: true,
+    const response = await fetch("/api/generate-response", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
     });
-
-    const text = await groq.chat.completions.create({
-      messages: [
-        {
-          role: "user",
-          content: `Generate a comprehensive but concise explanation about: ${query}. Focus on providing clear, factual information that covers the most important aspects.`,
-        },
-      ],
-      model: "llama-3.3-70b-versatile",
-    });
-
-    return text.choices[0]?.message?.content || "";
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        errorData.error || `API request failed with status ${response.status}`
+      );
+    }
+    const data = await response.json();
+    return data.content || "";
   } catch (error) {
-    console.error("Error generating AI response:", error);
-    return "Error generating content. Please try again.";
+    console.error("Error generating AI response (client):", error);
+    return `Error generating content: ${
+      error instanceof Error ? error.message : "Please try again."
+    }`;
   }
 }
 
@@ -30,36 +28,60 @@ export async function extractPrerequisites(
   topic: string
 ): Promise<string[]> {
   try {
-    const groq = new Groq({
-      apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY,
-      dangerouslyAllowBrowser: true,
+    const response = await fetch("/api/extract-prerequisites", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content, topic }),
     });
-
-    const text = await groq.chat.completions.create({
-      messages: [
-        {
-          role: "user",
-          content: `Based on the following content about "${topic}", identify a maximum of 7 key prerequisite concepts that someone would need to understand to fully grasp this topic. Content: ${content} Format your response as a simple comma-separated list with no numbering, explanations, or additional text. For example: "Concept 1, Concept 2, Concept 3, Concept 4, Concept 5"`,
-        },
-      ],
-      model: "llama-3.3-70b-versatile",
-    });
-
-    const new_text = text.choices[0]?.message?.content;
-
-    if (new_text == null) {
-      return [];
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        errorData.error || `API request failed with status ${response.status}`
+      );
     }
-
-    // Parse the response into an array of keywords
-    return (
-      new_text
-        .split(",")
-        .map((keyword) => keyword.trim())
-        .filter((keyword) => keyword.length > 0) || ""
-    );
+    const data = await response.json();
+    return data.prerequisites || [];
   } catch (error) {
-    console.error("Error extracting prerequisites:", error);
+    console.error("Error extracting prerequisites (client):", error);
     return [];
+  }
+}
+
+export interface ChatTurn {
+  role: "user" | "assistant";
+  content: string;
+  timestamp: number;
+}
+
+export async function continueChatOnTopic(
+  topicTitle: string,
+  topicContent: string,
+  chatHistory: Omit<ChatTurn, "timestamp">[], // Send history without timestamp
+  userMessage: string
+): Promise<string> {
+  try {
+    const response = await fetch("/api/chat-on-topic", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        topicTitle,
+        topicContent,
+        chatHistory,
+        userMessage,
+      }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        errorData.error || `API request failed with status ${response.status}`
+      );
+    }
+    const data = await response.json();
+    return data.response || "Sorry, I couldn't get a response.";
+  } catch (error) {
+    console.error("Error continuing chat (client):", error);
+    return `Error getting chat response: ${
+      error instanceof Error ? error.message : "Please try again."
+    }`;
   }
 }
