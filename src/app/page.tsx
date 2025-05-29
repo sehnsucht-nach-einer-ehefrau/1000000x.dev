@@ -859,7 +859,7 @@ export default function Home() {
                             className="bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 text-xs"
                           >
                             <ExternalLink size={12} className="mr-1" /> Explore:
-                            "{selectedTextForNewNode.substring(0, 15)}..."
+                            &quot;{selectedTextForNewNode.substring(0, 15)}...&quot;
                           </Button>
                         </motion.div>
                       )}
@@ -925,8 +925,8 @@ export default function Home() {
                           activeChatNodeDetails.chatHistory.length === 0) &&
                           !isChatting && (
                             <p className="text-center text-xs text-gray-500 py-4">
-                              Ask a question about "
-                              {activeChatNodeDetails.title}" to start the
+                              Ask a question about &quot;
+                              {activeChatNodeDetails.title}&quot; to start the
                               conversation.
                             </p>
                           )}
