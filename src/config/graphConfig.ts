@@ -4,7 +4,7 @@ export const NODE_HEIGHT = 280;
 export const HORIZONTAL_SPACING_PARENT_CHILD = 100; // Gap between parent's right edge and child's left edge
 export const VERTICAL_SPACING_SIBLINGS = 40; // Gap between sibling nodes
 
-export const ZOOM_MIN = 0.3;
+export const ZOOM_MIN = 0.7;
 export const ZOOM_MAX = 1;
 export const ZOOM_SENSITIVITY = 1.1; // For wheel zoom, higher is more sensitive (larger step)
 

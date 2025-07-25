@@ -1,4 +1,4 @@
-// app/api/chat-on-topic/route.ts
+// app/api/generate-main-topic/route.ts
 import { NextResponse } from "next/server";
 import { getGroqClient } from "@/lib/openai-client";
 import OpenAI from "openai";
@@ -15,11 +15,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { topicTitle, topicContent, chatHistory, userMessage } = await request.json();
+    const { topic } = await request.json();
 
-    if (!topicTitle || !topicContent || !chatHistory || !userMessage) {
+    if (!topic || typeof topic !== "string") {
       return NextResponse.json(
-        { error: "Missing required parameters" },
+        { error: "Invalid 'topic' parameter provided" },
         { status: 400 },
       );
     }
@@ -30,7 +30,6 @@ export async function POST(request: Request) {
 
     const apiKey = user?.groqApiKey;
 
-
     if (!apiKey) {
       return NextResponse.json({ error: 'API key is missing.' }, { status: 400 });
     }
@@ -38,28 +37,29 @@ export async function POST(request: Request) {
     const client = getGroqClient(apiKey);
     const model = "moonshotai/kimi-k2-instruct";
 
-    const systemPrompt = `
-      You are an expert AI assistant engaged in a conversation about "${topicTitle}".
-      The user has been provided with the following core information about the topic:
-      ---
-      ${topicContent}
-      ---
-      Your role is to continue the conversation based on the chat history and the user's latest message.
-      Provide helpful, insightful, and concise responses. Do not repeat information unless asked.
-      Keep your responses focused on the topic at hand.
-    `;
+    const prompt = `
+      You are an AI assistant that ONLY generates JSON.
+      A user wants to learn about "${topic}". Generate a detailed, comprehensive, and well-structured explanation of this topic suitable for someone new to the concept. The explanation should be in Markdown format.
 
-    const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
-      { role: "system", content: systemPrompt },
-      ...chatHistory,
-      { role: "user", content: userMessage },
-    ];
+      You MUST generate a response that is ONLY a single, valid JSON object.
+      Do not add any text before or after the JSON object.
+      Your entire response must be nothing but the JSON structure specified below.
+
+      The JSON schema you MUST adhere to is:
+      {
+        "topicTitle": "string", // The exact topic provided: "${topic}".
+        "mainExplanation": "string" // A detailed, well-structured Markdown explanation of the topic.
+      }
+
+      Begin your raw JSON response now.
+    `;
 
     const completion = await client.chat.completions.create({
       model: model,
-      messages: messages,
-      temperature: 0.7,
-      max_tokens: 2000,
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.5,
+      max_tokens: 4000,
+      response_format: { type: "json_object" },
     });
 
     const responseText = completion.choices[0]?.message?.content;
@@ -68,14 +68,15 @@ export async function POST(request: Request) {
       throw new Error("Received an empty response from the AI model.");
     }
 
-    return NextResponse.json({ response: responseText });
+    const parsedJson = JSON.parse(responseText);
+    return NextResponse.json(parsedJson);
   } catch (error) {
-    console.error(`Error in /api/chat-on-topic:`, error);
+    console.error(`Error in /api/generate-main-topic:`, error);
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";
     const status = error instanceof OpenAI.APIError ? error.status : 500;
     return NextResponse.json(
-      { error: `Failed to continue chat`, details: errorMessage },
+      { error: `Failed to generate main topic`, details: errorMessage },
       { status },
     );
   }

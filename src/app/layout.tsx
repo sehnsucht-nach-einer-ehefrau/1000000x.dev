@@ -2,13 +2,13 @@ import type React from "react";
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { ThemeProvider } from "@/components/theme-provider"; // Assuming this component exists
+import { AuthProvider } from "@/components/auth/auth-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Rabbit Hole Explorer",
-  description: "Explore topics and dive down the rabbit hole of knowledge",
+  title: "1,000,000x.dev",
+  description: "Know Everything.",
 };
 
 export default function RootLayout({
@@ -17,17 +17,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={`${inter.className} bg-black antialiased`}>
-        {" "}
-        {/* Added antialiased & bg-black for base */}
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false} // Explicitly disable system if you only want dark
-        >
-          {children}
-        </ThemeProvider>
+    <html lang="en" className="dark">
+      <body className={`${inter.className} antialiased`}>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

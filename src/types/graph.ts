@@ -1,18 +1,15 @@
-import type { ChatTurn } from "@/lib/ai-service"; // Assuming ChatTurn is exported from ai-service
+import type { ChatTurn } from "@/lib/ai-service";
 
 export interface Node {
   id: string;
   title: string;
   content: string;
+  description?: string;
   depth: number;
-  position: { x: number; y: number }; // For graph view
+  position: { x: number; y: number };
   hasExplored: boolean;
   parentId?: string;
-  chatHistory?: ChatTurn[]; // New: For chat view
-  // For graph view styling
-  isCentral?: boolean;
-  isActiveParent?: boolean;
-  isActiveChild?: boolean;
+  chatHistory: ChatTurn[];
 }
 
 export interface Connection {

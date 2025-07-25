@@ -1,0 +1,27 @@
+/* src/styles/graph-vis.css */
+
+.vis-network {
+    /* Ensures the canvas is not focusable, which adds an ugly blue outline */
+    outline: none !important;
+}
+
+/* Hide the default vis.js manipulation controls for a cleaner look */
+.vis-manipulation {
+    display: none !important;
+}
+
+/* Custom tooltip styling to match the dark theme */
+div.vis-tooltip {
+    position: absolute;
+    visibility: hidden;
+    padding: 8px;
+    white-space: nowrap;
+    font-family: sans-serif;
+    font-size: 14px;
+    color: #e5e7eb; /* gray-200 */
+    background-color: #1f2937; /* gray-800 */
+    border: 1px solid #4b5563; /* gray-600 */
+    border-radius: 6px;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    z-index: 100;
+}

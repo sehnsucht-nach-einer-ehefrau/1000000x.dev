@@ -1,0 +1,50 @@
+/* A container to center our content and hide the default cursor */
+.app-container {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  place-items: center;
+  background-color: #e8e8e8;
+  /* HIDE THE DEFAULT CURSOR */
+  cursor: none;
+}
+
+.custom-cursor {
+  border-radius: 50%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* The default state of the cursor */
+.cursor-default {
+  width: 20px;
+  height: 20px;
+  background-color: black;
+}
+
+/* The state when hovering over the magnetic button */
+.cursor-magnetic {
+  width: 80px;
+  height: 80px;
+  background-color: white;
+  /* This creates the cool inverse color effect */
+  mix-blend-mode: difference;
+}
+
+/* The button we will be hovering over */
+.magnetic-button {
+  padding: 2rem 4rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  font-family: sans-serif;
+  color: white;
+  background-color: black;
+  border: none;
+  border-radius: 10px;
+  /* The button also needs cursor: none */
+  cursor: none;
+  position: relative; /* Needed for positioning context */
+}

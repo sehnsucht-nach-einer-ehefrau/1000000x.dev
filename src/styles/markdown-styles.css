@@ -1,0 +1,80 @@
+/* src/styles/markdown-styles.css */
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+}
+
+.markdown-content h1 { 
+    font-size: 2.25em; 
+    border-bottom: 1px solid #374151; /* gray-700 */
+    padding-bottom: 0.5em;
+}
+.markdown-content h2 { font-size: 1.75em; }
+.markdown-content h3 { font-size: 1.25em; }
+
+.markdown-content p {
+    margin-bottom: 1.25rem;
+    line-height: 1.8;
+    color: #d1d5db; /* gray-300 */
+}
+
+.markdown-content a {
+    color: #a78bfa; /* violet-400 */
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease-in-out;
+}
+
+.markdown-content a:hover {
+    color: #c4b5fd; /* violet-300 */
+    text-decoration: underline;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+    margin-bottom: 1.25rem;
+    padding-left: 2em;
+}
+
+.markdown-content li {
+    margin-top: 0.5rem;
+}
+
+.markdown-content blockquote {
+    padding: 1rem 1.5rem;
+    color: #9ca3af; /* gray-400 */
+    background-color: rgba(31, 41, 55, 0.5); /* gray-800 with transparency */
+    border-left: 0.25em solid #8b5cf6; /* violet-500 */
+    border-radius: 0.5rem;
+    margin: 1.5rem 0;
+}
+
+.markdown-content code {
+    padding: 0.2em 0.4em;
+    margin: 0;
+    font-size: 85%;
+    background-color: #374151; /* gray-700 */
+    border-radius: 6px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+}
+
+.markdown-content pre {
+    padding: 1.25rem;
+    margin: 1.5rem 0;
+    overflow: auto;
+    background-color: #111827; /* gray-900 */
+    border: 1px solid #374151; /* gray-700 */
+    border-radius: 0.5rem;
+    line-height: 1.5;
+}
+
+.markdown-content pre code {
+    padding: 0;
+    background-color: transparent;
+    border: none;
+}
