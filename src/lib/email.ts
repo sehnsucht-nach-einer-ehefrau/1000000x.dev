@@ -7,7 +7,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function sendVerificationRequest({ identifier: email, url }: { identifier: string; url: string; }) {
   try {
     const { error } = await resend.emails.send({
-      from: "onboarding@resend.dev",
+      from: "become@1000000x.dev",
       to: email,
       subject: "Sign in to 1,000,000x.dev",
       html: `

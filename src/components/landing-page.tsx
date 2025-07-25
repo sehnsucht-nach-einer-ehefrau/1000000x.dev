@@ -246,7 +246,7 @@ export default function LandingPage({ onSubmit }: LandingPageProps) {
             <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-purple-400 to-indigo-400">
               1,000,000x.dev
             </h1>
-            <p className="text-lg text-gray-400">&quot;The perfect tool for deep research and brainstorming.&quot;</p>
+            <p className="text-lg text-gray-400">Know Everything.</p>
           </div>
         </div>
 
