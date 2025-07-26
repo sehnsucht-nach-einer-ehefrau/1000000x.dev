@@ -181,8 +181,8 @@ export default function Sidebar({
         <div className="flex items-center justify-around">
           {/* TAG: Bottom Icons (wrapped) */}
           <div data-magnetic-target className="flex-1"><CollapsedSidebarIcon icon={Key} onClick={onOpenApiKeyDialog} /></div>
-          <div data-magnetic-target className="flex-1"><CollapsedSidebarIcon icon={Coffee} href="https://www.buymeacoffee.com/example" /></div>
-          <div data-magnetic-target className="flex-1"><CollapsedSidebarIcon icon={Github} href="https://github.com/example/repo" /></div>
+          <div data-magnetic-target className="flex-1"><CollapsedSidebarIcon icon={Coffee} href="https://www.buymeacoffee.com/sehnsuchtnacheinerehefrau" /></div>
+          <div data-magnetic-target className="flex-1"><CollapsedSidebarIcon icon={Github} href="https://github.com/sehnsucht-nach-einer-ehefrau/1000000x.dev" /></div>
           <div data-magnetic-target className="flex-1"><CollapsedSidebarIcon icon={MessageCircle} onClick={() => setIsFeedbackOpen(true)} /></div>
         </div>
       </motion.div>
