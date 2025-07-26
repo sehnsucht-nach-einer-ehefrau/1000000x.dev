@@ -15,7 +15,17 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { topicTitle, topicContent, chatHistory, userMessage } = await request.json();
+    const {
+      topicTitle,
+      topicContent,
+      chatHistory,
+      userMessage,
+    }: { 
+      topicTitle: string;
+      topicContent: string;
+      chatHistory: { role: "user" | "assistant"; content: string }[];
+      userMessage: string;
+    } = await request.json();
 
     if (!topicTitle || !topicContent || !chatHistory || !userMessage) {
       return NextResponse.json(
@@ -51,7 +61,7 @@ export async function POST(request: Request) {
 
     const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
       { role: "system", content: systemPrompt },
-      ...chatHistory,
+      ...chatHistory.map((msg: { role: "user" | "assistant"; content: string }) => ({ role: msg.role, content: msg.content })),
       { role: "user", content: userMessage },
     ];
 
