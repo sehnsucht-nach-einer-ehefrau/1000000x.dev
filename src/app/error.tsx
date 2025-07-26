@@ -12,23 +12,19 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log the error to an error reporting service
+    // You can log the error to an error reporting service here
     console.error(error);
   }, [error]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-8">
-      <div className="text-center max-w-lg p-8 bg-gray-900 border border-red-500/30 rounded-2xl shadow-2xl shadow-red-500/10">
-        <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-red-500/10 mb-6">
-            <AlertTriangle className="h-8 w-8 text-red-400" />
-        </div>
-        <h2 className="text-3xl font-bold text-red-400 mb-4">An Unexpected Error Occurred</h2>
-        <p className="text-gray-400 mb-8">
-          We&apos;re sorry, but something went wrong on our end. Please try again, or start a new session if the problem persists.
-        </p>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-4">
+      <div className="bg-gray-900/50 border border-red-500/30 rounded-lg p-8 max-w-md w-full text-center backdrop-blur-md">
+        <AlertTriangle className="mx-auto h-12 w-12 text-red-500 mb-4" />
+        <h2 className="text-2xl font-bold mb-2">Oops, something went wrong!</h2>
+        <p className="text-gray-400 mb-6">We encountered an unexpected error. Please try again.</p>
         <Button
           onClick={() => reset()}
-          className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-semibold py-3 px-6 rounded-xl"
+          className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
         >
           Try Again
         </Button>

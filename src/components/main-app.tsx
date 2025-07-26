@@ -7,6 +7,7 @@ import ChatPanel from "./chat/chat-panel";
 import KnowledgeGraph from "./graph/knowledge-graph";
 import TopicTreeSidebar from "./chat/topic-tree-sidebar";
 import QueryInput from "./query-input";
+import { toast } from "sonner";
 import { generateMainTopic, generateTopicGraph, type ChatTurn } from "@/lib/ai-service";
 import type { Node, Connection } from "@/types/graph";
 import type { KnowledgeSession } from "@/lib/db/schema";
@@ -159,7 +160,16 @@ export default function MainApp() {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query }),
       });
 
-      const result = await generateMainTopic(query);
+      let result;
+      try {
+        result = await generateMainTopic(query);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+        toast.error(`Failed to generate topic: ${errorMessage}`);
+        setIsLoading(false);
+        return;
+      }
+
       const centralNode: Node = {
         id: nanoid(), title: result.topicTitle, content: result.mainExplanation,
         depth: 0, position: { x: 0, y: 0 }, hasExplored: false, parentId: undefined, chatHistory: [],
@@ -201,13 +211,19 @@ export default function MainApp() {
     const selectedNode = nodes.find(n => n.id === nodeId);
     if (selectedNode && selectedNode.description && !selectedNode.content.startsWith("### Generation Failed")) {
         setLoadingNodeId(nodeId);
-        const result = await generateMainTopic(selectedNode.title);
-        const updatedNodes = nodes.map(n => n.id === nodeId ? { ...n, content: result.mainExplanation, description: undefined } : n);
-        setNodes(updatedNodes);
-        if (currentSessionId) {
-            updateSessionInDb(currentSessionId, updatedNodes, connections);
+        try {
+          const result = await generateMainTopic(selectedNode.title);
+          const updatedNodes = nodes.map(n => n.id === nodeId ? { ...n, content: result.mainExplanation, description: undefined } : n);
+          setNodes(updatedNodes);
+          if (currentSessionId) {
+              updateSessionInDb(currentSessionId, updatedNodes, connections);
+          }
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+          toast.error(`Failed to fetch content: ${errorMessage}`);
+        } finally {
+          setLoadingNodeId(null);
         }
-        setLoadingNodeId(null);
     }
   }, [nodes, currentSessionId, connections, updateSessionInDb]);
 
@@ -243,7 +259,10 @@ export default function MainApp() {
       setNodes(updatedNodes);
       setConnections(updatedConnections);
       await updateSessionInDb(currentSessionId, updatedNodes, updatedConnections);
-    } catch (error) { console.error("Error expanding topic:", error); } 
+    } catch (error) { 
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+      toast.error(`Failed to expand topic: ${errorMessage}`);
+    } 
     finally { setLoadingNodeId(null); }
   }, [nodes, connections, currentSessionId, loadingNodeId, updateSessionInDb]);
   

@@ -212,7 +212,7 @@ const KnowledgeGraph = ({ nodes: initialNodes, connections, activeNodeId, onNode
         }, 500);
         
         return () => clearTimeout(timer);
-    }, [showAllNodes, isTransitioning, onNodeSelect]);
+    }, [showAllNodes, onNodeSelect]);
 
     const options: Options = useMemo(() => ({
         nodes: { color: 'transparent' },

@@ -1,25 +1,43 @@
-import { text, integer, sqliteTable } from "drizzle-orm/sqlite-core";
+import {
+  sqliteTable,
+  text,
+  integer,
+  primaryKey,
+} from "drizzle-orm/sqlite-core";
 
-// Minimal Users table - just email
+// -------- USERS (with groqApiKey back) --------
 export const users = sqliteTable("user", {
-  id: text("id").notNull().primaryKey(), // NextAuth expects a string ID (usually UUID)
+  id: text("id").primaryKey(), // UUID string
+  name: text("name"),
   email: text("email").notNull().unique(),
-  name: text("name"),  // optional, but NextAuth sometimes references name
-  groqApiKey: text("groqApiKey"),
+  emailVerified: integer("emailVerified", { mode: "timestamp" }),
+  image: text("image"),
+  groqApiKey: text("groqApiKey"), // <— here
 });
 
-// Minimal Sessions table
+// -------- SESSIONS --------
 export const sessions = sqliteTable("session", {
-  sessionToken: text("sessionToken").notNull().primaryKey(),
+  sessionToken: text("sessionToken").primaryKey(),
   userId: text("userId")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   expires: integer("expires", { mode: "timestamp" }).notNull(),
 });
 
-// Knowledge sessions table - unchanged, still references user
+// -------- VERIFICATION TOKENS --------
+export const verificationTokens = sqliteTable(
+  "verificationToken",
+  {
+    identifier: text("identifier").notNull(),
+    token: text("token").notNull(),
+    expires: integer("expires", { mode: "timestamp" }).notNull(),
+  },
+  (t) => ({ pk: primaryKey(t.identifier, t.token) }),
+);
+
+// -------- YOUR APP TABLE --------
 export const knowledgeSessions = sqliteTable("knowledge_sessions", {
-  id: text("id").notNull().primaryKey(),
+  id: text("id").primaryKey(),
   userId: text("userId")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -31,4 +49,8 @@ export const knowledgeSessions = sqliteTable("knowledge_sessions", {
   updatedAt: integer("updatedAt", { mode: "timestamp_ms" }).notNull(),
 });
 
+// -------- TYPES --------
+export type User = typeof users.$inferSelect;
+export type Session = typeof sessions.$inferSelect;
+export type VerificationToken = typeof verificationTokens.$inferSelect;
 export type KnowledgeSession = typeof knowledgeSessions.$inferSelect;

@@ -15,7 +15,7 @@ export const authOptions: NextAuthOptions = {
   },
   providers: [
     EmailProvider({
-      from: process.env.EMAIL_FROM || "onboarding@resend.dev",
+      from: process.env.EMAIL_FROM || "noreply@1000000x.dev",
       sendVerificationRequest,
     }),
   ],

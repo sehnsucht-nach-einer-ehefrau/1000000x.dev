@@ -19,9 +19,9 @@ export async function POST(request: Request) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: "Feedback <onboarding@resend.dev>",
+      from: "feedback@1000000x.dev",
       to: [toEmail],
-      subject: "New Feedback for 10x Developer",
+      subject: "New Feedback for 1,000,000x.dev",
       replyTo: email,
       react: FeedbackEmail({ email, message }) as React.ReactElement,
     });

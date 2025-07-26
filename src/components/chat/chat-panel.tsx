@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Loader2, BookOpen, Brain, Layers, Sparkles, PanelRightClose, PanelRightOpen, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { continueChatOnTopic } from "@/lib/ai-service";
 import type { ChatTurn } from "@/lib/ai-service";
 import type { Node as NodeType } from '@/types/graph';
@@ -94,9 +95,12 @@ export default function ChatPanel({
       const assistantTurn: ChatTurn = { role: "assistant", content: response, timestamp: Date.now() };
       onChatUpdate(node.id, [...updatedHistory, assistantTurn]);
     } catch (error) {
-      console.error("Error sending message:", error);
-      const errorTurn: ChatTurn = { role: "assistant", content: "Sorry, an error occurred.", timestamp: Date.now() };
-      onChatUpdate(node.id, [...updatedHistory, errorTurn]);
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+      toast.error(`Failed to get response: ${errorMessage}`);
+      // Revert the optimistic UI update
+      setChatHistory(chatHistory);
+      // Restore user's input
+      setInputMessage(userMessage);
     } finally {
       setIsSending(false);
     }

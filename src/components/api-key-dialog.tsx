@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { toast } from "sonner";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -48,10 +49,11 @@ export default function ApiKeyDialog({ isOpen, onClose, onApiKeySubmit }: ApiKey
     setIsLoading(true);
     try {
       await onApiKeySubmit(apiKey.trim());
+      toast.success("API key saved successfully!");
       onClose(); // Close dialog on successful submission
     } catch (error) {
-      console.error('Failed to submit API key', error);
-      // Here you could add a toast notification for the error
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred while saving the key.";
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

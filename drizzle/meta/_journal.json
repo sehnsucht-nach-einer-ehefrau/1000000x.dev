@@ -29,6 +29,27 @@
       "when": 1753418092781,
       "tag": "0003_unique_talos",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1753450227963,
+      "tag": "0004_useful_blindfold",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1753450381718,
+      "tag": "0005_brief_skin",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1753450740244,
+      "tag": "0006_condemned_nitro",
+      "breakpoints": true
     }
   ]
 }

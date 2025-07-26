@@ -49,11 +49,7 @@ export async function generateMainTopic(
     console.error("Error in generateMainTopic service:", error);
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred.";
-    // Return a structured error object that the UI can display gracefully
-    return {
-      topicTitle: `Error Generating: ${topic}`,
-      mainExplanation: `### Generation Failed\n\nAn error occurred while generating content for this topic. Please try again later or select a different topic.\n\n**Details:**\n\`\`\`\n${errorMessage}\n\`\`\``,
-    };
+    throw new Error(errorMessage);
   }
 }
 
@@ -85,11 +81,9 @@ export async function generateTopicGraph(
     return await response.json();
   } catch (error) {
     console.error("Error in generateTopicGraph service:", error);
-    // On failure, return an empty array for nextTopics. The UI will handle this.
-    return {
-      topicTitle: topic,
-      nextTopics: [],
-    };
+    const errorMessage =
+      error instanceof Error ? error.message : "An unknown error occurred.";
+    throw new Error(errorMessage);
   }
 }
 
@@ -130,7 +124,7 @@ export async function continueChatOnTopic(
   } catch (error) {
     console.error("Error in continueChatOnTopic service:", error);
     const errorMessage =
-      error instanceof Error ? error.message : "Please try again.";
-    return `Sorry, I encountered an error and couldn't process your request. Details: ${errorMessage}`;
+      error instanceof Error ? error.message : "An unknown error occurred while processing your message.";
+    throw new Error(errorMessage);
   }
 }
