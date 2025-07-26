@@ -78,7 +78,7 @@ export default function ChatPanel({
   const [inputMessage, setInputMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isClearConfirmOpen, setClearConfirmOpen] = useState(false);
-  const [generationType, setGenerationType] = useState<'rabbitHole' | 'subjectMastery'>('rabbitHole');
+
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
 
   const { chatHistory = [], title: topicTitle, content: topicContent } = node;
@@ -133,16 +133,30 @@ export default function ChatPanel({
           </div>
           <div className="flex items-center gap-2">
                {!node.hasExplored && (
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center space-x-2">
-                      <Switch id="generation-type" checked={generationType === 'subjectMastery'} onCheckedChange={(checked: boolean) => setGenerationType(checked ? 'subjectMastery' : 'rabbitHole')} />
-                      <Label htmlFor="generation-type" className="text-sm font-medium">Subject Mastery</Label>
+                  <div className="grid grid-cols-2 gap-2 w-full">
+                      <Button
+                        onClick={() => onExpandNode('rabbitHole')}
+                        disabled={isSending || isExpanding}
+                        variant="outline"
+                        className="w-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 border-purple-400/50 text-purple-300 hover:bg-purple-500/10 hover:text-purple-200"
+                        aria-label={isExpanding ? "Generating..." : "Generate Jack of all Trades topics"}
+                        data-magnetic-target
+                      >
+                        {isExpanding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                        <span>Jack of all Trades</span>
+                      </Button>
+                      <Button
+                        onClick={() => onExpandNode('subjectMastery')}
+                        disabled={isSending || isExpanding}
+                        variant="outline"
+                        className="w-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 border-purple-400/50 text-purple-300 hover:bg-purple-500/10 hover:text-purple-200"
+                        aria-label={isExpanding ? "Generating..." : "Generate Master of One topics"}
+                        data-magnetic-target
+                      >
+                        {isExpanding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                        <span>Master of One</span>
+                      </Button>
                     </div>
-                    <Button onClick={() => onExpandNode(generationType)} variant="outline" className="border-violet-500 text-violet-400 hover:bg-violet-500/10" disabled={isExpanding}>
-                       {isExpanding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                       {isExpanding ? "Generating..." : generationType === 'rabbitHole' ? "Generate Rabbit Holes" : "Generate Sub-topics"}
-                   </Button>
-                  </div>
                )}
               {node.chatHistory && node.chatHistory.length > 0 && (
                   <Button onClick={() => setClearConfirmOpen(true)} variant="outline" className="border-gray-700 text-gray-400 hover:bg-gray-800 hover:text-red-400 hover:border-red-500/50">
