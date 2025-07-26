@@ -113,8 +113,8 @@ export default function Sidebar({
             <div className="flex flex-col items-center space-y-4">
               {/* TAG: Bottom Icons (wrapped) */}
               <div data-magnetic-target><SidebarIcon icon={Key} text="API Key" onClick={onOpenApiKeyDialog} /></div>
-              <div data-magnetic-target><SidebarIcon icon={Coffee} text="Buy me a coffee" href="https://www.buymeacoffee.com/example" /></div>
-              <div data-magnetic-target><SidebarIcon icon={Github} text="GitHub" href="https://github.com/example/repo" /></div>
+              <div data-magnetic-target><SidebarIcon icon={Coffee} text="Buy me a coffee" href="https://www.buymeacoffee.com/sehnsuchtnacheinerehefrau" /></div>
+              <div data-magnetic-target><SidebarIcon icon={Github} text="GitHub" href="https://github.com/sehnsucht-nach-einer-ehefrau/1000000x.dev" /></div>
               <div data-magnetic-target><SidebarIcon icon={MessageCircle} text="Feedback" onClick={() => setIsFeedbackOpen(true)} /></div>
               <div className="my-2 w-full border-t border-gray-700/50"></div>
               {/* TAG: Expand Button */}
