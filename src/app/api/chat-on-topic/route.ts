@@ -20,11 +20,13 @@ export async function POST(request: Request) {
       topicContent,
       chatHistory,
       userMessage,
+      path,
     }: { 
       topicTitle: string;
       topicContent: string;
       chatHistory: { role: "user" | "assistant"; content: string }[];
       userMessage: string;
+      path: string[];
     } = await request.json();
 
     if (!topicTitle || !topicContent || !chatHistory || !userMessage) {
@@ -49,7 +51,8 @@ export async function POST(request: Request) {
     const model = "moonshotai/kimi-k2-instruct";
 
     const systemPrompt = `
-      You are an expert AI assistant engaged in a conversation about "${topicTitle}".
+      You are an expert AI assistant helping a user learn. The user is currently focused on "${topicTitle}", and their exploration path has been: ${path.join(" -> ")}. Keep this context in mind to provide clear, relevant, and helpful answers to their questions.
+
       The user has been provided with the following core information about the topic:
       ---
       ${topicContent}

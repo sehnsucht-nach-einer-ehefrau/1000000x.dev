@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { topic } = await request.json();
+    const { topic, path } = await request.json();
 
     if (!topic || typeof topic !== "string") {
       return NextResponse.json(
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
 
     const prompt = `
       You are an AI assistant that ONLY generates JSON.
-      A user wants to learn about "${topic}". Generate a detailed, comprehensive, and well-structured explanation of this topic suitable for someone new to the concept. The explanation should be in Markdown format.
+      A user is learning about "${topic}". Their learning path so far has been: ${path.join(" -> ")}. Use this context to provide a comprehensive and well-structured explanation of the current topic, tailored to their journey. The explanation should be in Markdown format.
 
       You MUST generate a response that is ONLY a single, valid JSON object.
       Do not add any text before or after the JSON object.

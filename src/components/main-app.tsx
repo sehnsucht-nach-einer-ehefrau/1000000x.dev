@@ -195,6 +195,18 @@ export default function MainApp() {
     }
   }, [initialQuery, currentSessionId, isLoading, handleQuerySubmit]);
   
+  const getPathForNode = useCallback((nodeId: string): string[] => {
+    const path: string[] = [];
+    const nodesById = new Map(nodes.map(n => [n.id, n]));
+    let currentNode = nodesById.get(nodeId);
+
+    while (currentNode) {
+      path.unshift(currentNode.title);
+      currentNode = currentNode.parentId ? nodesById.get(currentNode.parentId) : undefined;
+    }
+    return path;
+  }, [nodes]);
+
   const handleNodeSelectAndFetchContent = useCallback(async (nodeId: string) => {
     const statusResponse = await fetch('/api/user/status');
     if (!statusResponse.ok) {
@@ -212,7 +224,8 @@ export default function MainApp() {
     if (selectedNode && selectedNode.description && !selectedNode.content.startsWith("### Generation Failed")) {
         setLoadingNodeId(nodeId);
         try {
-          const result = await generateMainTopic(selectedNode.title);
+          const path = getPathForNode(nodeId);
+      const result = await generateMainTopic(selectedNode.title, path);
           const updatedNodes = nodes.map(n => n.id === nodeId ? { ...n, content: result.mainExplanation, description: undefined } : n);
           setNodes(updatedNodes);
           if (currentSessionId) {
@@ -227,7 +240,7 @@ export default function MainApp() {
     }
   }, [nodes, currentSessionId, connections, updateSessionInDb]);
 
-  const handleExpandNode = useCallback(async (nodeId: string) => {
+  const handleExpandNode = useCallback(async (nodeId: string, generationType: 'rabbitHole' | 'subjectMastery' = 'rabbitHole') => {
     const statusResponse = await fetch('/api/user/status');
     if (!statusResponse.ok) {
       setIsApiKeyDialogOpen(true);
@@ -245,7 +258,9 @@ export default function MainApp() {
       const parentNode = nodes.find((n) => n.id === nodeId);
       if (!parentNode || parentNode.hasExplored) return;
 
-      const result = await generateTopicGraph(parentNode.title);
+      const path = getPathForNode(nodeId);
+
+      const result = await generateTopicGraph(parentNode.title, generationType, path);
       const childNodes: Node[] = result.nextTopics.map((topic) => ({
         id: nanoid(), title: topic.title, content: topic.description, description: topic.description, depth: (parentNode.depth || 0) + 1,
         position: { x: 0, y: 0 },
@@ -375,10 +390,11 @@ export default function MainApp() {
                     <ChatPanel
                         key={activeNode.id}
                         node={activeNode}
+                        path={getPathForNode(activeNode.id)}
                         onChatUpdate={handleChatUpdate}
                         onClearChat={handleClearChat}
                         onViewChange={() => setViewMode('graph')}
-                        onExpandNode={() => handleExpandNode(activeNode.id)}
+                        onExpandNode={(generationType) => handleExpandNode(activeNode.id, generationType)}
                         isTopicTreeVisible={isTopicTreeVisible}
                         onToggleTopicTree={() => setIsTopicTreeVisible(!isTopicTreeVisible)}
                         isExpanding={loadingNodeId === activeNode.id}

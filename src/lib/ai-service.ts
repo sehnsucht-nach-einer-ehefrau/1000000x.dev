@@ -25,12 +25,13 @@ export interface ChatTurn {
  */
 export async function generateMainTopic(
   topic: string,
+  path: string[] = []
 ): Promise<MainTopicResponse> {
   try {
     const response = await fetch("/api/generate-main-topic", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ topic }),
+            body: JSON.stringify({ topic, path }),
     });
 
     if (!response.ok) {
@@ -59,12 +60,14 @@ export async function generateMainTopic(
  */
 export async function generateTopicGraph(
   topic: string,
+  generationType: 'rabbitHole' | 'subjectMastery' = 'rabbitHole',
+  path: string[] = []
 ): Promise<TopicGraphResponse> {
   try {
     const response = await fetch("/api/generate-topic", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ topic }),
+      body: JSON.stringify({ topic, generationType, path }),
     });
 
     if (!response.ok) {
@@ -95,16 +98,18 @@ export async function continueChatOnTopic(
   topicContent: string,
   chatHistory: { role: "user" | "assistant"; content: string }[],
   userMessage: string,
+  path: string[] = []
 ): Promise<string> {
   try {
     const response = await fetch("/api/chat-on-topic", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+            body: JSON.stringify({
         topicTitle,
         topicContent,
         chatHistory,
         userMessage,
+        path,
       }),
     });
 

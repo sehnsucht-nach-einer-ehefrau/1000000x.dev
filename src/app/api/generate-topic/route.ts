@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { topic } = await request.json();
+    const { topic, generationType, path } = await request.json();
 
     if (!topic || typeof topic !== "string") {
       return NextResponse.json(
@@ -37,9 +37,17 @@ export async function POST(request: Request) {
     const client = getGroqClient(apiKey);
     const model = "moonshotai/kimi-k2-instruct";
 
+    const masteryDescription = `An array of 10-15 tangential, contextually adjacent topics people often explore while learning or working with ${topic}. Focus on topics that come up WITHIN, not ALONGSIDE.`;
+    const rabbitHoleDescription = `An array of 10-15 tangential, contextually adjacent topics people often explore while learning or working with ${topic}. Focus on topics that come up ALONGSIDE, not WITHIN.`;
+
+    const promptDescription =
+      generationType === "subjectMastery"
+        ? masteryDescription
+        : rabbitHoleDescription;
+
     const prompt = `
       You are an AI assistant that ONLY generates JSON.
-      A user is studying "${topic}". Generate a list of related topics they can "rabbit hole" into.
+      A user is exploring a topic. Their exploration path so far is: ${path.join(" -> ")}. They are currently on the topic "${topic}". Generate a list of related topics for them to explore next.
 
       You MUST generate a response that is ONLY a single, valid JSON object.
       Do not add any text before or after the JSON object.
@@ -48,10 +56,10 @@ export async function POST(request: Request) {
       The JSON schema you MUST adhere to is:
       {
         "topicTitle": "string", // The exact topic provided: "${topic}".
-        "nextTopics": [ // An array of 10-15 tangential, contextually adjacent topics people often explore while learning or working with ${topic}. Focus on topics that come up ALONGSIDE, not WITHIN.
+        "nextTopics": [ // ${promptDescription}
           {
             "title": "string", // Concise title for the related concept.
-            "description": "string" // A one-sentence compelling description of the rabbit hole.
+            "description": "string" // A one-sentence compelling description of the topic.
           }
         ]
       }

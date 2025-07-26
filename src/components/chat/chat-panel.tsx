@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Send, Loader2, BookOpen, Brain, Layers, Sparkles, PanelRightClose, PanelRightOpen, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -17,10 +19,11 @@ import { AnimatePresence, motion } from "framer-motion";
 
 interface ChatPanelProps {
   node: NodeType;
+  path: string[];
   onChatUpdate: (nodeId: string, chatHistory: ChatTurn[]) => void;
   onClearChat: (nodeId: string) => void;
   onViewChange: () => void;
-  onExpandNode: () => void;
+  onExpandNode: (generationType: 'rabbitHole' | 'subjectMastery') => void;
   isTopicTreeVisible: boolean;
   onToggleTopicTree: () => void;
   isExpanding: boolean;
@@ -63,6 +66,7 @@ const MarkdownRenderer = ({ content }: { content: string }) => (
 
 export default function ChatPanel({
   node,
+  path,
   onChatUpdate,
   onClearChat,
   onViewChange,
@@ -71,14 +75,15 @@ export default function ChatPanel({
   onToggleTopicTree,
   isExpanding
 }: ChatPanelProps) {
-  const [chatHistory, setChatHistory] = useState<ChatTurn[]>(node.chatHistory || []);
   const [inputMessage, setInputMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isClearConfirmOpen, setClearConfirmOpen] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [generationType, setGenerationType] = useState<'rabbitHole' | 'subjectMastery'>('rabbitHole');
+  const endOfMessagesRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chatHistory]);
-  useEffect(() => { setChatHistory(node.chatHistory || []) }, [node.id, node.chatHistory]);
+  const { chatHistory = [], title: topicTitle, content: topicContent } = node;
+
+  useEffect(() => { endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chatHistory]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isSending) return;
@@ -87,18 +92,25 @@ export default function ChatPanel({
     setIsSending(true);
 
     const newUserTurn: ChatTurn = { role: "user", content: userMessage, timestamp: Date.now() };
-    const updatedHistory = [...chatHistory, newUserTurn];
-    setChatHistory(updatedHistory);
+    const optimisticHistory = [...(chatHistory || []), newUserTurn];
+    // Optimistic update
+    onChatUpdate(node.id, optimisticHistory);
 
     try {
-      const response = await continueChatOnTopic(node.title, node.content, updatedHistory, userMessage);
+      const response = await continueChatOnTopic(
+        topicTitle,
+        topicContent,
+        optimisticHistory,
+        userMessage,
+        path
+      );
       const assistantTurn: ChatTurn = { role: "assistant", content: response, timestamp: Date.now() };
-      onChatUpdate(node.id, [...updatedHistory, assistantTurn]);
+      onChatUpdate(node.id, [...optimisticHistory, assistantTurn]);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
       toast.error(`Failed to get response: ${errorMessage}`);
-      // Revert the optimistic UI update
-      setChatHistory(chatHistory);
+      // Revert optimistic update on error
+      onChatUpdate(node.id, chatHistory || []);
       // Restore user's input
       setInputMessage(userMessage);
     } finally {
@@ -120,12 +132,18 @@ export default function ChatPanel({
             <h2 className="text-xl font-bold truncate pr-4">{node.title}</h2>
           </div>
           <div className="flex items-center gap-2">
-              {!node.hasExplored && (
-                   <Button onClick={onExpandNode} variant="outline" className="border-violet-500 text-violet-400 hover:bg-violet-500/10" disabled={isExpanding}>
-                      {isExpanding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                      {isExpanding ? "Generating..." : "Generate Rabbit Holes"}
-                  </Button>
-              )}
+               {!node.hasExplored && (
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center space-x-2">
+                      <Switch id="generation-type" checked={generationType === 'subjectMastery'} onCheckedChange={(checked: boolean) => setGenerationType(checked ? 'subjectMastery' : 'rabbitHole')} />
+                      <Label htmlFor="generation-type" className="text-sm font-medium">Subject Mastery</Label>
+                    </div>
+                    <Button onClick={() => onExpandNode(generationType)} variant="outline" className="border-violet-500 text-violet-400 hover:bg-violet-500/10" disabled={isExpanding}>
+                       {isExpanding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                       {isExpanding ? "Generating..." : generationType === 'rabbitHole' ? "Generate Rabbit Holes" : "Generate Sub-topics"}
+                   </Button>
+                  </div>
+               )}
               {node.chatHistory && node.chatHistory.length > 0 && (
                   <Button onClick={() => setClearConfirmOpen(true)} variant="outline" className="border-gray-700 text-gray-400 hover:bg-gray-800 hover:text-red-400 hover:border-red-500/50">
                       <Trash2 className="mr-2 h-4 w-4" />
@@ -158,7 +176,7 @@ export default function ChatPanel({
               <ChatMessage key={`${node.id}-chat-${index}`} role={turn.role} content={turn.content} />
             ))}
             {isSending && <div className="flex justify-start"><div className="bg-gray-900 rounded-lg p-4 flex items-center space-x-2"><Loader2 className="h-4 w-4 animate-spin text-purple-400" /><span className="text-gray-400">Thinking...</span></div></div>}
-            <div ref={messagesEndRef} />
+            <div ref={endOfMessagesRef} />
           </div>
         </div>
         
