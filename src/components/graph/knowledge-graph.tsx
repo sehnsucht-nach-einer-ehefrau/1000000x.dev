@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import type { Node as CustomNode, Connection } from '@/types/graph';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, Transition } from '@headlessui/react';
-import ReactMarkdown from 'react-markdown';
+import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import { cn } from '@/lib/utils';
 
 import '@/styles/graph-vis.css';
@@ -33,7 +33,7 @@ const ContentModal = memo(({ node, isOpen, onClose }: { node: CustomNode | null;
                                 <X size={24} />
                             </button>
                             <div className="mt-4 max-h-[65vh] overflow-y-auto pr-5 text-gray-300 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
-                                <div className="markdown-content"><ReactMarkdown>{node.content}</ReactMarkdown></div>
+                                <div className="markdown-content"><MarkdownRenderer content={node.content} /></div>
                             </div>
                         </Dialog.Panel>
                     </Transition.Child>
