@@ -9,7 +9,6 @@ import type { ChatTurn } from "@/lib/ai-service";
 import type { Node as NodeType } from '@/types/graph';
 import ChatMessage from "./chat-message";
 import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
-import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 
 
