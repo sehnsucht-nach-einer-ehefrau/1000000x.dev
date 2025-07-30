@@ -1,8 +1,8 @@
-# Welcome to 1,000,000x.dev
+# Welcome to [1,000,000x.dev](https://1000000x.dev)
 
-`1,000,000x.dev` is an AI-powered tool designed to help you visually explore complex topics. Instead of just giving you a list of links, it generates an interactive knowledge graph that shows you how ideas and concepts are connected. This makes it easier to understand the bigger picture and discover new insights.
+[1,000,000x.dev](https://1000000x.dev) is an AI-powered tool designed to help you visually explore complex topics. Instead of just giving you a list of links, it generates an interactive knowledge graph that shows you how ideas and concepts are connected. This makes it easier to understand the bigger picture and discover new insights.
 
-Stop not knowing what you don't know with `1,000,000x.dev`.
+Stop not knowing what you don't know with [1,000,000x.dev](https://1000000x.dev).
 
 ## How to Use It
 
