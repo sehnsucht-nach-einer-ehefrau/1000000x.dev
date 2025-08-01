@@ -51,7 +51,7 @@ export default function QueryInput({ onSubmit, isLoading }: QueryInputProps) {
     >
       <form onSubmit={handleSubmit} className="relative flex justify-center">
         {/* ADD data-magnetic-target TO THE MAIN WRAPPER */}
-        <div className="relative group min-w-4xl" data-magnetic-target>
+        <div className="relative group min-w-sm md:min-w-4xl" data-magnetic-target>
           <div className="absolute -inset-2 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 rounded-3xl blur-xl opacity-20 group-hover:opacity-30 group-focus-within:opacity-40 transition duration-500"></div>
           <div className="absolute -inset-1 bg-gradient-to-r from-violet-600/50 to-purple-600/50 rounded-3xl blur opacity-25 group-hover:opacity-40 group-focus-within:opacity-50 transition duration-300"></div>
 

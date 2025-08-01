@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Plus, Brain, ChevronsLeft, ChevronsRight, MessageSquare, Github, Coffee, MessageCircle, Key } from "lucide-react";
+import { Plus, Brain, ChevronsLeft, ChevronsRight, MessageSquare, Github, Coffee, MessageCircle, Key, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SessionList from "./session-list";
 import type { KnowledgeSession } from "@/lib/db/schema";
@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import Link from 'next/link';
 import FeedbackModal from '../feedback-modal';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { signOut } from "next-auth/react";
 
 interface SidebarProps {
   sessions: KnowledgeSession[];
@@ -116,6 +117,7 @@ export default function Sidebar({
               <div data-magnetic-target><SidebarIcon icon={Coffee} text="Buy me a coffee" href="https://www.buymeacoffee.com/sehnsuchtnacheinerehefrau" /></div>
               <div data-magnetic-target><SidebarIcon icon={Github} text="GitHub" href="https://github.com/sehnsucht-nach-einer-ehefrau/1000000x.dev" /></div>
               <div data-magnetic-target><SidebarIcon icon={MessageCircle} text="Feedback" onClick={() => setIsFeedbackOpen(true)} /></div>
+              <div data-magnetic-target><SidebarIcon icon={LogOut} text="Logout" onClick={() => signOut({ callbackUrl: '/' })} /></div>
               <div className="my-2 w-full border-t border-gray-700/50"></div>
               {/* TAG: Expand Button */}
               <motion.button onClick={onToggle} data-magnetic-target className="group flex h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-900 mb-2">
@@ -184,6 +186,7 @@ export default function Sidebar({
           <div data-magnetic-target className="flex-1"><CollapsedSidebarIcon icon={Coffee} href="https://www.buymeacoffee.com/sehnsuchtnacheinerehefrau" /></div>
           <div data-magnetic-target className="flex-1"><CollapsedSidebarIcon icon={Github} href="https://github.com/sehnsucht-nach-einer-ehefrau/1000000x.dev" /></div>
           <div data-magnetic-target className="flex-1"><CollapsedSidebarIcon icon={MessageCircle} onClick={() => setIsFeedbackOpen(true)} /></div>
+          <div data-magnetic-target className="flex-1"><CollapsedSidebarIcon icon={LogOut} onClick={() => signOut({ callbackUrl: '/' })} /></div>
         </div>
       </motion.div>
       {/* Note: The modal itself is not tagged, as it's an overlay. You could tag its internal buttons if desired. */}

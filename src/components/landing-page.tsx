@@ -6,6 +6,7 @@ import { Brain, Search, MessageCircle, GitBranch, Network, Eye, BookOpen, Sparkl
 import { Badge } from "@/components/ui/badge"
 import QueryInput from "./query-input"
 import { useEffect, useState } from "react"
+import { Button } from "@/components/ui/button"
 
 interface LandingPageProps {
   onSubmit: (query: string) => void
@@ -242,7 +243,7 @@ export default function LandingPage({ onSubmit }: LandingPageProps) {
               </motion.div>
             </div>
           </div>
-          <div>
+          <div className="hidden md:block">
             <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-purple-400 to-indigo-400">
               1,000,000x.dev
             </h1>
@@ -250,11 +251,18 @@ export default function LandingPage({ onSubmit }: LandingPageProps) {
           </div>
         </div>
 
-        <div className="hidden md:flex items-center space-x-6">
-          <Badge variant="secondary" className="bg-violet-500/10 text-violet-300 border-violet-500/20">
-            <Sparkles className="w-3 h-3 mr-1" />
-            Beta Access
-          </Badge>
+        <div className="flex items-center space-x-6">
+          <div className="-mr-2 md:mr-8">
+            <Button variant="link" onClick={() => window.location.href = '/auth/signin'}>Sign Up</Button>
+            <span>/</span>
+            <Button variant="link" onClick={() => window.location.href = '/auth/signin'}>Sign In</Button>
+          </div>
+          <div className="hidden md:block">
+            <Badge variant="secondary" className="bg-violet-500/10 text-violet-300 border-violet-500/20 mt-1">
+              <Sparkles className="w-3 h-3 mr-1" />
+              Beta Access
+            </Badge>
+          </div>
         </div>
       </div>
     </motion.header>
@@ -343,21 +351,21 @@ export default function LandingPage({ onSubmit }: LandingPageProps) {
               <div key={index}>
                 <motion.div
                   variants={itemVariants}
-                  className="flex flex-col items-center text-center w-full md:w-auto"
+                  className="flex flex-row md:flex-col items-center text-center w-full md:w-auto"
                 >
                   <div className="relative mb-4">
-                    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 flex items-center justify-center border border-violet-500/30">
-                      <step.icon className="h-8 w-8 text-violet-400" />
+                    <div className="h-8 w-8 md:h-16 md:w-16 rounded-xl md:rounded-2xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 flex items-center justify-center border border-violet-500/30">
+                      <step.icon className="h-4 w-4 md:h-8 md:w-8 text-violet-400" />
                     </div>
-                    <span className="absolute -top-2 -right-2 h-8 w-8 bg-gradient-to-r from-violet-500 to-purple-500 rounded-full flex items-center justify-center text-sm font-bold">
+                    <span className="absolute -top-2 -right-2 h-4 w-4 md:h-8 md:w-8 bg-gradient-to-r from-violet-500 to-purple-500 rounded-full flex items-center justify-center text-xs md:text-sm font-bold">
                       {step.step}
                     </span>
                   </div>
 
-                  <h4 className="text-lg font-semibold text-white mb-2">
+                  <h4 className="text-lg font-semibold text-white mb-2 ml-10 md:ml-0">
                     {step.title}
                   </h4>
-                  <p className="text-gray-400 text-sm">{step.description}</p>
+                  <p className="text-gray-400 hidden md:block md:text-sm">{step.description}</p>
                   </motion.div>
                 </div>
               ))}
@@ -407,36 +415,35 @@ export default function LandingPage({ onSubmit }: LandingPageProps) {
                 Everything you need to explore knowledge and make connections.
               </motion.p>
             </motion.div>
+            <motion.div
+              className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
+              {features.map((feature, index) => (
+                <motion.div
+                  key={index}
+                  variants={itemVariants}
+                  className="overflow-hidden p-8 rounded-2xl bg-gradient-to-br from-gray-900/50 to-gray-800/30 border border-gray-700/50 backdrop-blur-sm hover:border-violet-500/30 hover:bg-violet-900/30 transition-colors duration-300 "
+                >
+              {/* Card content (now simplified) */}
+              <div className="flex items-center mb-4">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 flex items-center justify-center transition-colors duration-300">
+                  <feature.icon className="h-6 w-6 text-violet-400" />
+                </div>
+              </div>
 
-<motion.div
-  className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-  variants={containerVariants}
-  initial="hidden"
-  whileInView="visible"
-  viewport={{ once: true }}
->
-  {features.map((feature, index) => (
-    <motion.div
-      key={index}
-      variants={itemVariants}
-      className="overflow-hidden p-8 rounded-2xl bg-gradient-to-br from-gray-900/50 to-gray-800/30 border border-gray-700/50 backdrop-blur-sm hover:border-violet-500/30 hover:bg-violet-900/30 transition-colors duration-300 "
-    >
-      {/* Card content (now simplified) */}
-      <div className="flex items-center mb-4">
-        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 flex items-center justify-center transition-colors duration-300">
-          <feature.icon className="h-6 w-6 text-violet-400" />
-        </div>
-      </div>
-
-      <h4 className="text-xl font-semibold text-white mb-3">
-        {feature.title}
-      </h4>
-      <p className="text-gray-400 leading-relaxed">
-        {feature.description}
-      </p>
-    </motion.div>
-  ))}
-</motion.div>
+              <h4 className="text-xl font-semibold text-white mb-3">
+                {feature.title}
+              </h4>
+              <p className="text-gray-400 leading-relaxed">
+                {feature.description}
+              </p>
+            </motion.div>
+          ))}
+      </motion.div>
           </div>
         </section>
 

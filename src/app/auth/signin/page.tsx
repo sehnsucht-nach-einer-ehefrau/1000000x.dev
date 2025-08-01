@@ -1,12 +1,13 @@
 "use client";
 
-import { Suspense } from 'react';
-import { useState } from "react";
+import { Suspense, useState } from 'react';
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Mail, ArrowRight, Brain } from "lucide-react";
+import { ArrowRight, Brain, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import VerifyRequestPage from "../verify-request/page"
+import Link from "next/link"
 
 function SignInContent() {
   const [email, setEmail] = useState("");
@@ -36,26 +37,21 @@ function SignInContent() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-black to-gray-900 text-white flex items-center justify-center p-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-md w-full text-center space-y-6"
-        >
-          <div className="h-16 w-16 mx-auto rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-            <Mail className="h-8 w-8 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold">Check your email</h1>
-          <p className="text-gray-400">
-            We&apos;ve sent a magic link to <strong>{email}</strong>. Click the link in the email to sign in.
-          </p>
-        </motion.div>
-      </div>
+      <VerifyRequestPage />
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-black to-gray-900 text-white flex items-center justify-center p-8">
+      <Link href="/" className="absolute left-5 top-5">
+        <Button
+          variant="link"
+          className="border-gray-700 text-gray-300 hover:text-white hover:border-gray-600"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Home
+        </Button>
+      </Link>
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <motion.div
