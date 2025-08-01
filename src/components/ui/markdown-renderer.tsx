@@ -20,21 +20,22 @@ export const MarkdownRenderer = ({ content }: { content: string }) => (
             th: ({ ...props}) => <th className="px-6 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider" {...props} />,
             tr: ({ ...props}) => <tr className="border-b border-gray-700/50" {...props} />,
             td: ({ ...props}) => <td className="px-6 py-4 text-sm text-gray-400" {...props} />,
-            code: (props) => {
-                const { className, children } = props;
-                const text = String(children);
-
-                if (!text.includes('\n')) {
-                  return <code className="bg-violet-900/50 text-violet-300 px-1.5 py-1 rounded-md font-mono text-sm">{children}</code>;
+            code: ({ className, children, ...props }) => {
+                const match = /language-(\w+)/.exec(className || '');
+                if (match) {
+                  // This is a code block with language - let pre handle the wrapper
+                  return <code className="block p-4 overflow-x-auto font-mono text-sm" {...props}>{children}</code>;
                 }
-
+                // This is inline code
+                return <code className="bg-violet-900/50 text-violet-300 px-1.5 py-1 rounded-md font-mono text-sm" {...props}>{children}</code>;
+            },
+            pre: ({ className, children, ...props }) => {
                 return (
-                  <pre className={cn(className, "code-block-pre bg-gray-900/70 rounded-lg my-4 border border-gray-700/50 overflow-hidden")}>
-                    <code className="block p-4 overflow-x-auto font-mono text-sm">{children}</code>
+                  <pre className={cn(className, "code-block-pre bg-gray-900/70 rounded-lg my-4 border border-gray-700/50 overflow-hidden")} {...props}>
+                    {children}
                   </pre>
                 );
             },
-            pre: ({ children }) => <>{children}</>,
         }}
     >
         {content}
