@@ -4,11 +4,11 @@ import { authOptions } from "@/lib/auth-config";
 import MainApp from "@/components/main-app";
 
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
+	const session = await getServerSession(authOptions);
 
-  if (!session) {
-    redirect("/auth/signin");
-  }
+	if (!session) {
+		redirect("/auth/signin");
+	}
 
-  return <MainApp />;
+	return <MainApp />;
 }

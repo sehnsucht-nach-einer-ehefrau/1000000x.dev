@@ -5,14 +5,14 @@ import { Resend } from "resend";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendVerificationRequest({ identifier: email, url }: { identifier: string; url: string; }) {
-  try {
-    const { error } = await resend.emails.send({
-      from: "noreply@1000000x.dev",
-      to: email,
-      subject: "Sign in to 1,000,000x.dev",
-      html: `
+	try {
+		const { error } = await resend.emails.send({
+			from: "onboarding@1000000x.dev",
+			to: email,
+			subject: "Sign in to 1,000,000x.dev",
+			html: `
         <div style="font-family: sans-serif; padding: 24px; max-width: 600px; margin: 0 auto;">
-          <h1 style="font-size: 24px; margin-bottom: 16px; color: #333;">Sign in to 1000000x.dev</h1>
+          <h1 style="font-size: 24px; margin-bottom: 16px; color: #333; text-decoration: none;">Sign in to 1000000x.dev</h1>
           <p style="margin-bottom: 24px; color: #666; line-height: 1.5;">
             Click the button below to sign in to your account. This link will expire in 24 hours.
           </p>
@@ -24,16 +24,16 @@ export async function sendVerificationRequest({ identifier: email, url }: { iden
           </p>
         </div>
       `,
-    });
+		});
 
-    if (error) {
-      console.error("Resend error:", error);
-      throw new Error(`Failed to send verification email: ${error.message}`);
-    }
+		if (error) {
+			console.error("Resend error:", error);
+			throw new Error(`Failed to send verification email: ${error.message}`);
+		}
 
 
-  } catch (error) {
-    console.error("Error sending verification email:", error);
-    throw new Error("Failed to send verification email.");
-  }
+	} catch (error) {
+		console.error("Error sending verification email:", error);
+		throw new Error("Failed to send verification email.");
+	}
 }

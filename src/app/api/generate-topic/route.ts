@@ -9,43 +9,43 @@ import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+	const session = await getServerSession(authOptions);
+	if (!session?.user?.id) {
+		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+	}
 
-  try {
-    const { topic, generationType, path } = await request.json();
+	try {
+		const { topic, generationType, path } = await request.json();
 
-    if (!topic || typeof topic !== "string") {
-      return NextResponse.json(
-        { error: "Invalid 'topic' parameter provided" },
-        { status: 400 },
-      );
-    }
+		if (!topic || typeof topic !== "string") {
+			return NextResponse.json(
+				{ error: "Invalid 'topic' parameter provided" },
+				{ status: 400 },
+			);
+		}
 
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, session.user.id),
-    });
+		const user = await db.query.users.findFirst({
+			where: eq(users.id, session.user.id),
+		});
 
-    const apiKey = user?.groqApiKey;
+		const apiKey = user?.groqApiKey;
 
-    if (!apiKey) {
-      return NextResponse.json({ error: 'API key is missing.' }, { status: 400 });
-    }
+		if (!apiKey) {
+			return NextResponse.json({ error: 'API key is missing.' }, { status: 400 });
+		}
 
-    const client = getGroqClient(apiKey);
-    const model = "moonshotai/kimi-k2-instruct";
+		const client = getGroqClient(apiKey);
+		const model = "moonshotai/kimi-k2-instruct";
 
-    const masteryDescription = `An array of 10-15 tangential, contextually adjacent topics people often explore while learning or working with ${topic}. Focus on topics that come up WITHIN, not ALONGSIDE.`;
-    const rabbitHoleDescription = `An array of 10-15 tangential, contextually adjacent topics people often explore while learning or working with ${topic}. Focus on topics that come up ALONGSIDE, not WITHIN.`;
+		const masteryDescription = `An array of 10-15 tangential, contextually adjacent topics people often explore while learning or working with ${topic}. Focus on topics that come up WITHIN, not ALONGSIDE.`;
+		const rabbitHoleDescription = `An array of 10-15 tangential, contextually adjacent topics people often explore while learning or working with ${topic}. Focus on topics that come up ALONGSIDE, not WITHIN.`;
 
-    const promptDescription =
-      generationType === "subjectMastery"
-        ? masteryDescription
-        : rabbitHoleDescription;
+		const promptDescription =
+			generationType === "subjectMastery"
+				? masteryDescription
+				: rabbitHoleDescription;
 
-    const prompt = `
+		const prompt = `
       You are an AI assistant that ONLY generates JSON.
       A user is exploring a topic. Their exploration path so far is: ${path.join(" -> ")}. They are currently on the topic "${topic}". Generate a list of related topics for them to explore next.
 
@@ -67,30 +67,30 @@ export async function POST(request: Request) {
       Begin your raw JSON response now.
     `;
 
-    const completion = await client.chat.completions.create({
-      model: model,
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.5,
-      max_tokens: 4000,
-      response_format: { type: "json_object" },
-    });
+		const completion = await client.chat.completions.create({
+			model: model,
+			messages: [{ role: "user", content: prompt }],
+			temperature: 0.5,
+			max_tokens: 4000,
+			response_format: { type: "json_object" },
+		});
 
-    const responseText = completion.choices[0]?.message?.content;
+		const responseText = completion.choices[0]?.message?.content;
 
-    if (!responseText) {
-      throw new Error("Received an empty response from the AI model.");
-    }
+		if (!responseText) {
+			throw new Error("Received an empty response from the AI model.");
+		}
 
-    const parsedJson = JSON.parse(responseText);
-    return NextResponse.json(parsedJson);
-  } catch (error) {
-    console.error(`Error in /api/generate-topic:`, error);
-    const errorMessage =
-      error instanceof Error ? error.message : "An unknown error occurred";
-    const status = error instanceof OpenAI.APIError ? error.status : 500;
-    return NextResponse.json(
-      { error: `Failed to generate topic list`, details: errorMessage },
-      { status },
-    );
-  }
+		const parsedJson = JSON.parse(responseText);
+		return NextResponse.json(parsedJson);
+	} catch (error) {
+		console.error(`Error in /api/generate-topic:`, error);
+		const errorMessage =
+			error instanceof Error ? error.message : "An unknown error occurred";
+		const status = error instanceof OpenAI.APIError ? error.status : 500;
+		return NextResponse.json(
+			{ error: `Failed to generate topic list`, details: errorMessage },
+			{ status },
+		);
+	}
 }
